@@ -34,7 +34,7 @@ init([Host, Port]) ->
     {ok, UDPSock} = gen_udp:open(0, [binary, {active,false}]),
     %% Try to make a TCP connection
     case gen_tcp:connect(Host, Port,
-                         [binary, {active, false}],
+                         [binary, {active, false}, {nodelay, true}],
                          5000) of
         {ok, TCPSock} ->
             {ok, #st{udp = UDPSock, tcp = TCPSock, host = Host, port = Port}};
