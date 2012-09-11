@@ -55,8 +55,9 @@ handle_call({events, Msg}, _From, St = #st{tcp = TCP}) ->
 		{#zeta_msg{error = Error}, _} -> {error, {riemann, Error}};
 		{none, _} -> {error, noparse}
 	    end;
-        {error, timeout} ->
-            error_logger:info_msg("zeta_client timeout receiving ack for send")
+        {error, _} = Error ->
+            error_logger:info_msg("zeta_client receive error: ~p~n", [Error]),
+            {stop, {shutdown, {tcp_recv_error, Error}}}
     end;
 handle_call(_Message, _From, State) -> {reply, ignored, State}.
 
