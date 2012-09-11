@@ -64,14 +64,15 @@ handle_call({events, Msg}, _From, St = #st{tcp = TCP}) ->
                         {#zeta_msg{error = Error}, _} ->
                             {error, {riemann, Error}};
                         {none, _} -> {error, noparse}
-                    end
+                    end;
+                {error, _} = Error ->
+                    error_logger:info_msg(
+                      "ignoring zeta_client receive error: ~p~n", [Error]),
+                    {stop, {shutdown, tcp_recv_error}, ok, St}
             end;
         {error, closed} ->
             error_logger:info_msg("zeta_client disconnected"),
-            {stop, {shutdown, connection_closed}, St};
-        {error, _} = Error ->
-            error_logger:info_msg("zeta_client receive error: ~p~n", [Error]),
-            {stop, {shutdown, {tcp_recv_error, Error}}}
+            {stop, {shutdown, connection_closed}, ok, St}
     end;
 handle_call(_Message, _From, State) -> {reply, ignored, State}.
 
