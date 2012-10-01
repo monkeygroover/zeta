@@ -34,7 +34,7 @@ init([Host, Port]) ->
     {ok, UDPSock} = gen_udp:open(0, [binary, {active,false}]),
     %% Try to make a TCP connection
     case gen_tcp:connect(Host, Port,
-                         [binary, {active, false}],
+                         [binary, {active, false}, {nodelay, true}],
                          5000) of
         {ok, TCPSock} ->
             {ok, #st{udp = UDPSock, tcp = TCPSock, host = Host, port = Port}};
@@ -64,11 +64,15 @@ handle_call({events, Msg}, _From, St = #st{tcp = TCP}) ->
                         {#zeta_msg{error = Error}, _} ->
                             {error, {riemann, Error}};
                         {none, _} -> {error, noparse}
-                    end
+                    end;
+                {error, _} = Error ->
+                    error_logger:info_msg(
+                      "ignoring zeta_client receive error: ~p~n", [Error]),
+                    {stop, {shutdown, tcp_recv_error}, ok, St}
             end;
         {error, closed} ->
             error_logger:info_msg("zeta_client disconnected"),
-            {stop, {shutdown, connection_closed}, St}
+            {stop, {shutdown, connection_closed}, ok, St}
     end;
 handle_call(_Message, _From, State) -> {reply, ignored, State}.
 
