@@ -73,8 +73,9 @@ encode(
        maybe_enc(?STATE_METRICF, MetricF, state_t(?STATE_METRICF))
       ]);
 encode(
-  #zeta_event{time = Time, state = State, service = Service, host = Host, 
-	      description = Desc, tags = Tags, ttl = TTL, metric_f = MetricF}
+  #zeta_event{time = Time, state = State, service = Service, host = Host,
+	      description = Desc, tags = Tags, attributes = Attributes,
+              ttl = TTL, metric_f = MetricF}
  ) ->
     erlang:iolist_to_binary(
       [
@@ -86,6 +87,10 @@ encode(
        lists:map(fun(Tag) ->
 			 maybe_enc(?STATE_TAG, Tag, event_t(?STATE_TAG))
 		 end, Tags),
+       lists:map(fun(Attr) -> maybe_enc(?EVENT_ATTRIBUTES,
+                                        encode(Attr),
+                                        event_t(?EVENT_ATTRIBUTES))
+                 end, Attributes),
        maybe_enc(?EVENT_TTL, TTL, event_t(?EVENT_TTL)),
        maybe_enc(?EVENT_METRICF, MetricF, event_t(?EVENT_METRICF))
       ]);
@@ -93,8 +98,13 @@ encode(#zeta_query{string = String}) ->
     erlang:iolist_to_binary(
       [
        maybe_enc(?QUERY_STRING, String, query_t(?QUERY_STRING))
+      ]);
+encode(#zeta_attribute{key = Key, value = Value}) ->
+    erlang:iolist_to_binary(
+      [
+       maybe_enc(?ATTRIBUTE_KEY, Key, attribute_t(?ATTRIBUTE_KEY)),
+       maybe_enc(?ATTRIBUTE_VALUE, Value, attribute_t(?ATTRIBUTE_VALUE))
       ]).
-
 
 decode(Bin) ->
     decode(Bin, #zeta_msg{}).

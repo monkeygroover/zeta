@@ -60,13 +60,14 @@ ev(Loc, Metric, State, []) when is_list(State) ->
     E = ev(Loc, Metric),
     E#zeta_event{state = State};
 ev(Loc, Metric, State, Opts) ->
-    [Time, Description, Tags, TTL] = 
+    [Time, Description, Tags, TTL, Attributes] = 
 	lists:map(fun (K) -> lookup(K, Opts) end, 
-		  [[t, time], [desc, description], [tag, tags], ttl]),
+		  [[t, time], [desc, description], [tag, tags], ttl, attributes]),
     E = ev(Loc, Metric, State, []),
     E#zeta_event{time = Time, 
 		 description = Description, tags = process_tags(Tags, []),
-		 ttl = TTL}.
+		 ttl = TTL,
+                 attributes = process_attributes(Attributes, [])}.
 
 process_tags(undefined, _) -> [];
 process_tags([], Acc) -> Acc;
@@ -74,6 +75,11 @@ process_tags([Tag | Tags], Acc) when is_atom(Tag) ->
     process_tags(Tags, [atom_to_list(Tag) | Acc]);
 process_tags([Tag | Tags], Acc) when is_list(Tag) ->
     process_tags(Tags, [Tag | Acc]).
+
+process_attributes([], Acc) -> Acc;
+process_attributes([{Key, Value}|Rest], Acc) ->
+    process_attributes(Rest, [#zeta_attribute{key = atom_to_list(Key),
+                                              value = Value}|Acc]).
 
 evh(Service, Metric) ->
     ev({node(), Service}, Metric).
