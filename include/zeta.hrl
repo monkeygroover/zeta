@@ -31,8 +31,9 @@
 	  description :: undefined | string(),	% 5  string
 	  tags = [] :: [string(), ...],		% 7  string repeated
 	  ttl :: undefined | float(),		% 8  float
+          attributes = [] :: [zattribute(), ...], % 9 zattribute repeated
 	  metric_f :: undefined | float() 	% 15  float
-	 }).
+        }).
 
 -define(EVENT_TIME, 1).
 -define(EVENT_STATE, 2).
@@ -42,6 +43,7 @@
 -define(EVENT_ONCE, 6).
 -define(EVENT_TAG, 7).
 -define(EVENT_TTL, 8).
+-define(EVENT_ATTRIBUTES, 9).
 -define(EVENT_METRICF, 15).
 
 -record(zeta_query,
@@ -59,13 +61,24 @@
 	  zevents = [] :: [zevent(), ...]	% 6 zeta_event repeated
 	 }).
 
+
 -define(MSG_OK, 2).
 -define(MSG_ERROR, 3).
 -define(MSG_ZSTATE, 4).
 -define(MSG_ZQUERY, 5).
 -define(MSG_ZEVENT, 6).
 
+-record(zeta_attribute,
+        {
+          key :: undefined | string(), % 1 string
+          value :: undefined | string() % 2 string
+        }).
+
+-define(ATTRIBUTE_KEY, 1).
+-define(ATTRIBUTE_VALUE, 2).
+
 -type zstate() :: #zeta_state{}.
 -type zevent() :: #zeta_event{}.
 -type zquery() :: #zeta_query{}.
 -type zmsg()   :: #zeta_msg{}.
+-type zattribute() :: #zeta_attribute{}.
