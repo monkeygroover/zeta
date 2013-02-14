@@ -29,6 +29,7 @@ zeta_event() ->
 		host = nstring(), 
 		description = nstring(), 
 		tags = list(bstring()),
+                attributes = list(zeta_attribute()),
 		ttl = nfloat(),
 		metric_f = nfloat()}.
 
@@ -40,6 +41,10 @@ zeta_msg() ->
 	      zstates = list(zeta_state()),
 	      zquery = zeta_query(),
 	      zevents = list(zeta_event())}.
+
+zeta_attribute() ->
+    #zeta_attribute{key = nstring(),
+                    value = nstring()}.
 
 % prop_encdec_state() ->
 %     ?FORALL(State, zeta_state(), 
@@ -57,9 +62,20 @@ zeta_msg() ->
 % 		   Q)).
 
 prop_encdec_msg() ->
-    ?FORALL(Msg, zeta_msg(), 
-	    equals(zeta_pb:decode(zeta_pb:encode(Msg)),
-		     Msg)).
+    ?FORALL(Msg, zeta_msg(), begin
+            Msg2 = zeta_pb:decode(zeta_pb:encode(Msg)),
+            ?WHENFAIL(
+                ?debugFmt("msg ~p~nmsg2 ~p~n", [Msg, Msg2]),
+                make_canonical(Msg) == make_canonical(Msg2))
+        end).
 
 proper_test_() ->
     [fun () -> [] = proper:module(?MODULE, [verbose, {numtests, 100}]) end].
+
+
+make_canonical(#zeta_msg{zevents = Events} = Msg) ->
+    Events1 = [make_canonical_event(Event) || Event <- Events],
+    Msg#zeta_msg{zevents = Events1}.
+
+make_canonical_event(#zeta_event{attributes = Attributes} = Event) ->
+    Event#zeta_event{attributes = lists:sort(Attributes)}.

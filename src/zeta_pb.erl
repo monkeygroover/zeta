@@ -183,7 +183,7 @@ decode(Bin, ZState = #zeta_state{tags = Tags}) ->
     catch
 	error:function_clause -> {error, {noparse, field, zstate}}
     end;
-decode(Bin, ZEvent = #zeta_event{tags = Tags}) ->
+decode(Bin, ZEvent = #zeta_event{tags = Tags, attributes = Attributes}) ->
     try protobuffs:read_field_num_and_wire_type(Bin) of
         {{Slot, _}, _} -> 
 	    try protobuffs:decode(Bin, event_t(Slot)) of
@@ -199,6 +199,14 @@ decode(Bin, ZEvent = #zeta_event{tags = Tags}) ->
 		    decode(Rest, ZEvent#zeta_event{description = Desc});
 		{{?EVENT_TAG, Tag}, Rest} ->
 		    decode(Rest, ZEvent#zeta_event{tags = [Tag | Tags]});
+                {{?EVENT_ATTRIBUTES, Attr}, Rest} ->
+                    case decode(Attr, #zeta_attribute{}) of
+			{error, R, _} -> {error, {attribute_failed, R}};
+			Attribute ->
+                            decode(Rest,
+                                   ZEvent#zeta_event{
+                                     attributes = [Attribute|Attributes]})
+		    end;
 		{{?EVENT_TTL, TTL}, Rest} ->
 		    decode(Rest, ZEvent#zeta_event{ttl = TTL});
 		{{?EVENT_METRICF, MetricF}, Rest} ->
@@ -219,9 +227,28 @@ decode(Bin, ZQuery = #zeta_query{}) ->
 		error:function_clause -> {error, {noparse, zquery}}
 	    end
     catch
-	error:function_clause -> {error, {noparse, field, zquery}}
+        error:function_clause -> {error, {noparse, field, zquery}}
+    end;
+
+
+decode(Bin, ZAttribute = #zeta_attribute{}) ->
+    case catch protobuffs:read_field_num_and_wire_type(Bin) of
+        {{Slot, _}, _} ->
+            case catch protobuffs:decode(Bin, attribute_t(Slot)) of
+                {{?ATTRIBUTE_KEY, String}, Rest} ->
+                    decode(Rest, ZAttribute#zeta_attribute{key = String});
+                {{?ATTRIBUTE_VALUE, String}, Rest} ->
+                    decode(Rest, ZAttribute#zeta_attribute{value = String});
+                {'EXIT', {function_clause, _}} ->
+                    {error, {noparse, zattribute}}
+            end;
+        {'EXIT', {function_clause, _}} ->
+            {error, {noparse, field, zattribute}}
     end.
 
+                                                                      
+
+                                                         
 %% Utilities
 
 keyfindor(Match, PList, Default) ->
