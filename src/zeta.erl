@@ -76,6 +76,7 @@ process_tags([Tag | Tags], Acc) when is_atom(Tag) ->
 process_tags([Tag | Tags], Acc) when is_list(Tag) ->
     process_tags(Tags, [Tag | Acc]).
 
+process_attributes(undefined, _) -> [];
 process_attributes([], Acc) -> Acc;
 process_attributes([{Key, Value}|Rest], Acc) ->
     process_attributes(Rest, [#zeta_attribute{key = atom_to_list(Key),
