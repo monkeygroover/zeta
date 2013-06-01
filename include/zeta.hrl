@@ -7,7 +7,7 @@
 	  host :: undefined | string(),		% 4  string
 	  description :: undefined | string(),	% 5  string
 	  once :: undefined | boolean(),	% 6  bool
-	  tags = [] ::  [string(), ...],	% 7  string repeated
+	  tags = [] ::  [string()],	% 7  string repeated
 	  ttl :: undefined | float(),		% 8  float
 	  metric_f :: undefined | float()	% 15 float
 	 }).
@@ -29,9 +29,9 @@
 	  service :: undefined | string(),	% 3  string
 	  host :: undefined | string(),		% 4  string
 	  description :: undefined | string(),	% 5  string
-	  tags = [] :: [string(), ...],		% 7  string repeated
+	  tags = [] :: [string()],		% 7  string repeated
 	  ttl :: undefined | float(),		% 8  float
-          attributes = [] :: [zattribute(), ...], % 9 zattribute repeated
+          attributes = [] :: [zattribute()], % 9 zattribute repeated
 	  metric_f :: undefined | float() 	% 15  float
         }).
 
@@ -56,9 +56,9 @@
 	{
 	  ok :: undefined | boolean(),		% 2 bool
 	  error :: undefined | string(),	% 3 string
-	  zstates = [] :: [zstate(), ...],	% 4 zeta_state repeated
+	  zstates = [] :: [zstate()],	% 4 zeta_state repeated
 	  zquery :: undefined |	zquery(),	% 5 zeta_query
-	  zevents = [] :: [zevent(), ...]	% 6 zeta_event repeated
+	  zevents = [] :: [zevent()]	% 6 zeta_event repeated
 	 }).
 
 
