@@ -9,7 +9,7 @@
 -include("include/zeta_extra.hrl").
 
 -spec
-pop(binary()) -> {zmsg(), binary()}.
+pop(binary()) -> {zmsg(), binary()} | {none, binary()}.
 pop(<<Length:32/integer-big, Rest/binary>>) ->
     case Rest of
 	<<Msg:Length/binary, Leftover/binary>> ->
