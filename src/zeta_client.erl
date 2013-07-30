@@ -80,5 +80,5 @@ handle_cast({events, Msg}, St = #st{udp = UDP, host = Host, port = Port}) ->
     gen_udp:send(UDP, Host, Port, Msg),
     {noreply, St}.
 
-handle_info(_Message, State) -> {ok, State}.
+handle_info(_Message, State) -> {noreply, State}.
 code_change(_Vsn, State, _Extra) -> {ok, State}.

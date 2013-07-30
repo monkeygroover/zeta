@@ -1,7 +1,6 @@
 %% @doc Zeta: an Erlang client for Riemann
 
 -module(zeta).
--compile([{parse_transform, do}]).
 -author('Joseph Abrahamson <me@jspha.com>').
 
 -export([ev/2, ev/3, ev/4, evh/2, evh/3, evh/4]).
@@ -102,10 +101,13 @@ sv_batch(Es) ->
     M = #zeta_msg{zevents = Es},
     Data = zeta_pb:encode(M),
     Length = byte_size(Data),
-    do([error_m ||
-           Client <- zeta_corral:client(),
+    case zeta_corral:client() of
+        {ok, Client} ->
            gen_server:call(
-             Client, {events, <<Length:32/integer-big, Data/binary>>})]).
+             Client, {events, <<Length:32/integer-big, Data/binary>>});
+        {error, _} = Error ->
+            Error
+    end.
 
 svh(Service, Metric) -> svh(Service, Metric, undefined).
 svh(Service, Metric, State) -> svh(Service, Metric, State, []).
@@ -120,10 +122,12 @@ cv(Loc, Metric, State, Opts) ->
 cv_batch(Es) ->
     M = #zeta_msg{zevents = Es},
     Data = zeta_pb:encode(M),
-    do([error_m || 
-           Client <- zeta_corral:client(),
-           gen_server:cast(Client, {events, Data})]).
-
+    case zeta_corral:client() of
+        {ok, Client} ->
+            gen_server:cast(Client, {events, Data});
+        {error, _} = Error ->
+            Error
+    end.
 
 cvh(Service, Metric) -> cvh(Service, Metric, undefined).
 cvh(Service, Metric, State) -> cvh(Service, Metric, State, []).
@@ -180,13 +184,15 @@ all_client_configs() ->
 
 -spec 
 client_config(Client :: atom()) -> 
-    maybe:t({inet:address(), inet:portnumber(), Restart :: term()}).
+    {ok, {inet:address(), inet:portnumber(), Restart :: term()}} | {error, any()}.
 client_config(Client) ->
     case all_client_configs() of
 	{ok, Confs} ->
 	    case lists:keyfind(Client, 1, Confs) of
-		{Client, Conf} -> maybe_m:just(Conf);
-		_Else -> maybe_m:nothing()
+		{Client, Conf} ->
+                {ok, Conf};
+		_Else ->
+                {error, no_config}
 	    end
     end.
 

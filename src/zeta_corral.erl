@@ -10,7 +10,6 @@
 %% of creating new on the fly.
 
 -module(zeta_corral).
--compile([{parse_transform, do}]).
 -author('Joseph Abrahamson <me@jspha.com>').
 
 -export([client/0, client/1]).
@@ -28,20 +27,21 @@
 
 -spec
 %% @equiv client(default).
-client() -> error_m:t(pid()).
+client() -> {ok, pid()} | {error, any()}.
 client() -> client(default).
 
 -spec
-client(Name :: atom()) -> error_m:t(pid()).
+client(Name :: atom()) -> {ok, pid()} | {error, any()}.
 client(Name) ->
-    case
-	do([error_m || 
-	       {Host, Port, _} <- maybe_m:justok(zeta:client_config(Name)),
-	       start_client(Name, Host, Port)]) 
-	of
-	{error, {already_started, Pid}} -> {ok, Pid};
-	{ok, Pid} -> {ok, Pid};
-	{error, Reason} -> {error, Reason}
+    case zeta:client_config(Name) of
+        {ok, {Host, Port, _}} ->
+            case start_client(Name, Host, Port) of
+                {error, {already_started, Pid}} -> {ok, Pid};
+                {ok, Pid} -> {ok, Pid};
+                {error, Reason} -> {error, Reason}
+            end;
+        {error, _} = Error ->
+            Error
     end.
 
 start_client(Name, Host, Port) ->
