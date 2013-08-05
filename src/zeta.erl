@@ -97,11 +97,12 @@ sv(Loc, Metric, State, Opts) ->
     E = ev(Loc, Metric, State, Opts),
     sv_batch([E]).
 
-sv_batch(Es) ->
+sv_batch(Es) -> sv_batch(default, Es).
+sv_batch(Backend, Es) ->
     M = #zeta_msg{zevents = Es},
     Data = zeta_pb:encode(M),
     Length = byte_size(Data),
-    case zeta_corral:client() of
+    case zeta_corral:client(Backend) of
         {ok, Client} ->
            gen_server:call(
              Client, {events, <<Length:32/integer-big, Data/binary>>});
