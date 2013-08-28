@@ -20,10 +20,10 @@
 %% Lifecycle API
 
 start(Host, Port) ->
-    gen_server:start({local, ?SERVER}, ?MODULE, [Host, Port], []).
+    gen_server:start(?MODULE, [Host, Port], []).
 
 start_link(Host, Port) ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [Host, Port], []).
+    gen_server:start_link(?MODULE, [Host, Port], []).
 
 
 %% -----------------------

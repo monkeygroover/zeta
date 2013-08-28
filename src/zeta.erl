@@ -6,7 +6,7 @@
 -export([ev/2, ev/3, ev/4, evh/2, evh/3, evh/4]).
 -export([sv/2, sv/3, sv/4, svh/2, svh/3, svh/4]).
 -export([cv/2, cv/3, cv/4, cvh/2, cvh/3, cvh/4]).
--export([cv_batch/1, sv_batch/1]).
+-export([cv_batch/1, sv_batch/1, sv_batch/2]).
 
 -export([all_client_configs/0, client_config/1]).
 
@@ -97,11 +97,12 @@ sv(Loc, Metric, State, Opts) ->
     E = ev(Loc, Metric, State, Opts),
     sv_batch([E]).
 
-sv_batch(Es) ->
+sv_batch(Es) -> sv_batch(default, Es).
+sv_batch(Backend, Es) ->
     M = #zeta_msg{zevents = Es},
     Data = zeta_pb:encode(M),
     Length = byte_size(Data),
-    case zeta_corral:client() of
+    case zeta_corral:client(Backend) of
         {ok, Client} ->
            gen_server:call(
              Client, {events, <<Length:32/integer-big, Data/binary>>});
