@@ -39,7 +39,6 @@ init([Host, Port]) ->
         {ok, TCPSock} ->
             {ok, #st{udp = UDPSock, tcp = TCPSock, host = Host, port = Port}};
         {error, econnrefused} ->
-            error_logger:info_msg("zeta_client connection refused"),
             {stop, {shutdown, econnrefused}}
     end.
 
