@@ -4,9 +4,6 @@ APP := zeta
 
 .PHONY: deps
 
-ft: 
-	@$(REBAR) skip_deps=true compile eunit
-
 all: deps
 	@$(REBAR) compile
 
@@ -24,6 +21,9 @@ docs:
 
 test: all
 	@$(REBAR) skip_deps=true eunit
+
+ft: 
+	@$(REBAR) skip_deps=true compile eunit
 
 fast:
 	@$(REBAR) skip_deps=true compile
